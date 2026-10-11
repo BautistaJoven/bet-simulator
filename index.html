@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f2f2f7">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Deuda de Cartas">
+<meta name="description" content="Juego de cartas por turnos: juega combos, esquiva malditas y paga tu deuda.">
+<meta property="og:title" content="Deuda de Cartas"><meta property="og:description" content="Juego de cartas por turnos: juega combos, esquiva malditas y paga tu deuda."><meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23007aff'/%3E%3Crect x='19' y='11' width='26' height='40' rx='5' fill='white' transform='rotate(-10 32 31)'/%3E%3Ctext x='33' y='40' font-size='26' text-anchor='middle' fill='%23ff3b30'%3E%E2%99%A5%3C/text%3E%3C/svg%3E">
+<title>Deuda de Cartas</title>
+<style>
+:root{--bg:#f2f2f7;--card:#fff;--label:#000;--sub:#8e8e93;--sep:#d1d1d6;--blue:#007aff;--green:#34c759;--red:#ff3b30;--orange:#ff9500;--purple:#af52de;--fill:rgba(120,120,128,.12);--dark:#2c2c2e;--shadow:0 1px 2px rgba(0,0,0,.08),0 4px 14px rgba(0,0,0,.06);
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000;--card:#1c1c1e;--label:#fff;--sep:#38383a;--blue:#0a84ff;--green:#30d158;--red:#ff453a;--orange:#ff9f0a;--purple:#bf5af2;--fill:rgba(120,120,128,.24);--dark:#3a3a3c;--shadow:none}}
+:root[data-theme="dark"]{--bg:#000;--card:#1c1c1e;--label:#fff;--sep:#38383a;--blue:#0a84ff;--green:#30d158;--red:#ff453a;--orange:#ff9f0a;--purple:#bf5af2;--fill:rgba(120,120,128,.24);--dark:#3a3a3c;--shadow:none}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{overflow-x:hidden;background:var(--bg);scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--label);font:17px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#app{max-width:480px;margin:0 auto;padding:4px 16px 40px}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer;text-align:inherit}
+.nav{height:44px;display:flex;align-items:center}
+.back{color:var(--blue);display:flex;align-items:center;gap:6px}
+h1{font-size:34px;font-weight:700;letter-spacing:-.5px;line-height:1.1;margin:2px 0 14px}
+.sec{font-size:13px;color:var(--sub);text-transform:uppercase;letter-spacing:.3px;margin:24px 16px 6px}
+.sub{color:var(--sub);font-size:15px}
+.group{background:var(--card);border-radius:12px;overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;padding:10px 14px;width:100%;min-height:58px}
+.group>*+*{border-top:.5px solid var(--sep)}
+.ico{width:38px;height:38px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center}
+.ico svg{width:23px;height:23px}
+.ico.lg{width:48px;height:48px;border-radius:11px}.ico.lg svg{width:28px;height:28px}
+.ico.sm{width:30px;height:30px;border-radius:7px}.ico.sm svg{width:18px;height:18px}
+.t{flex:1;min-width:0}.t b{font-weight:600;display:block}.t small{color:var(--sub);font-size:14px;display:block;line-height:1.25}
+.chev{color:var(--sep);font-size:26px;line-height:1}
+.price{background:var(--fill);color:var(--blue);border-radius:999px;padding:5px 13px;font-weight:600;font-size:15px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);background:var(--card);border-radius:14px;padding:10px 0;margin-bottom:10px}
+.stats div{text-align:center}.stats div+div{border-left:.5px solid var(--sep)}
+.stats small{display:block;color:var(--sub);font-size:12px}
+.stats b{font-size:24px;font-weight:700;letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+.mine{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 2px 10px;color:var(--sub);font-size:13px}
+.pill{background:var(--fill);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:15px}.pill b{font-weight:600}
+.btn{display:block;width:100%;padding:15px;border-radius:14px;background:var(--blue);color:#fff;font-weight:600;text-align:center;margin:12px 0}
+.btn.tint{background:var(--fill);color:var(--blue)}
+.btn:disabled{opacity:.35}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.seg .btn{margin:0;padding:12px}
+.hand{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.card{background:var(--card);border-radius:16px;min-height:104px;padding:6px 3px 7px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;box-shadow:var(--shadow);transition:transform .15s,opacity .15s}
+.card:active{transform:scale(.96)}
+.card .su{align-self:flex-start;font-style:normal;font-size:16px;line-height:1;padding-left:4px;min-height:16px}
+.card b{font-size:27px;font-weight:700;letter-spacing:-1px;line-height:1}
+.card .d{font-size:10px;color:var(--sub);line-height:1.2}
+.card.r .su{color:var(--red)}.card.a .su{color:var(--blue)}.card.v .su{color:var(--green)}
+.card.m{background:var(--orange);color:#fff}.card.m .d{color:rgba(255,255,255,.9)}
+.card.x{background:var(--dark);color:#fff}.card.x .d{color:#aeaeb2}
+.card.t b{color:var(--purple)}
+.card.u{background:var(--blue);color:#fff}.card.z{background:var(--green);color:#fff}.card.u .d,.card.z .d{color:rgba(255,255,255,.9)}
+.card.sel{opacity:.3;transform:scale(.95)}
+.slots{display:flex;gap:8px;margin:8px 0}
+.slot{flex:1;min-width:0;height:48px;font-size:13px;white-space:nowrap;border-radius:12px;border:1.5px dashed var(--sep);display:flex;align-items:center;justify-content:center;color:var(--sub);font-weight:600}
+button.slot{border:1.5px solid var(--blue);background:var(--card);color:var(--label);text-align:center}
+.line{padding:11px 14px;font-size:16px}
+.total{text-align:center;margin:18px 0 4px}.total small{display:block;color:var(--sub);font-size:13px}.total b{font-size:52px;font-weight:700;letter-spacing:-1.5px}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.center{text-align:center;padding-top:40px}.center p{color:var(--sub);margin:6px 0 18px}
+.bigico{width:84px;height:84px;border-radius:50%;margin:0 auto 18px;display:flex;align-items:center;justify-content:center}.bigico svg{width:44px;height:44px}
+.hero{text-align:center;margin:8px 0 22px}.hero h1{margin-bottom:4px}
+.box{background:var(--card);border-radius:14px;padding:12px 14px;margin-top:22px;font-size:14.5px;line-height:1.4}.box>b{display:block;font-size:17px;margin-bottom:4px}.box p{margin:6px 0;color:var(--sub)}.box p b{color:var(--label)}
+@media (prefers-reduced-motion:no-preference){
+@keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes pick{0%{transform:scale(1)}35%{transform:scale(.95);background:rgba(0,122,255,.2)}100%{transform:scale(1.02);background:rgba(0,122,255,.12)}}
+@keyframes slotin{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.14);opacity:1}100%{transform:scale(1)}}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes buy{0%{transform:scale(1)}25%{transform:scale(1.04);background:rgba(52,199,89,.28)}60%{transform:scale(1.02);background:rgba(52,199,89,.2);opacity:1}100%{transform:scale(.96);background:rgba(52,199,89,.2);opacity:.15}}
+@keyframes tick{0%{transform:scale(1)}40%{transform:scale(1.3);color:var(--orange)}100%{transform:scale(1)}}
+@keyframes ipop{0%{transform:scale(0)}65%{transform:scale(1.35)}100%{transform:scale(1)}}
+#app.enter>*{animation:up .34s cubic-bezier(.2,.8,.2,1) both}
+#app.enter>*:nth-child(n+2){animation-delay:.05s}#app.enter>*:nth-child(n+3){animation-delay:.1s}#app.enter>*:nth-child(n+4){animation-delay:.15s}#app.enter>*:nth-child(n+5){animation-delay:.2s}
+.row.pick{animation:pick .28s ease both}.row.pick .chev{transform:translateX(6px);color:var(--blue)}.chev{transition:transform .2s,color .2s}
+.slotin{animation:slotin .32s cubic-bezier(.3,1.5,.5,1) both}
+.bump{animation:bump .28s ease}.shake{animation:shake .28s ease}
+.row.bought{animation:buy .7s ease both;pointer-events:none}.row.bought .price{background:var(--green);color:#fff}.row.bought .ico{transform:scale(1.15);transition:transform .25s}
+.tick{display:inline-block;animation:tick .45s ease}
+.ipop{animation:ipop .45s cubic-bezier(.3,1.5,.5,1) both}
+.alert{animation:slotin .25s both}
+}
+.pill .pr{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.chg{background:var(--blue);color:#fff;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600;flex:none}
+.pill .nx{margin-top:6px;padding-top:6px;border-top:.5px solid var(--sep);color:var(--sub);font-size:14px}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.seg2 .btn{margin:4px 0;padding:11px;font-size:15px}
+.card.t.g b{color:var(--green)}.card.t.bd b{color:var(--red)}
+.mine button{padding:0;display:block}
+.alert.info .m small{font-size:15px;color:var(--label);margin-top:8px}.alert.info .ico{margin:0 auto 10px}
+.tag{font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px;margin-left:8px}.tag.g{background:rgba(52,199,89,.2);color:var(--green)}.tag.m{background:rgba(255,59,48,.18);color:var(--red)}
+.k-b{--tb:var(--card);--tc:var(--label);--td:var(--sub)}
+.k-x{--tb:#0f0f10}.k-t{--tb:#af52de}.k-m{--tb:#ffcc00;--tc:#2a2000;--td:rgba(42,32,0,.75)}.k-e{--tb:#1c8fc7}.k-p{--tb:#6b7a90}.k-l{--tb:#1d3557}.k-s{--tb:#188a4c}.k-z{--tb:#f08300}.k-bk{--tb:#a2845e}.k-rl{--tb:#5856d6}.k-pg{--tb:#ff2d55}.k-cd{--tb:linear-gradient(135deg,#ff9500,#af52de,#007aff)}
+.s-r{--sc:var(--red)}.s-a{--sc:var(--blue)}.s-v{--sc:var(--green)}.s-w{--sc:#ff9500}
+.cx{background:var(--tb);color:var(--tc,#fff);padding:7px 7px 9px;min-height:118px;gap:0;align-items:stretch;position:relative;overflow:hidden;text-align:left;justify-content:flex-start}
+.cx.k-x{box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),var(--shadow)}
+.cx .r1{display:flex;justify-content:space-between;align-items:center}
+.chip{width:27px;height:27px;border-radius:50%;background:#fff;color:var(--sc);font-style:normal;font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;flex:none}
+.gl{display:flex;align-items:center;justify-content:center;font-style:normal;flex:none}.gl svg{width:100%;height:100%;stroke:currentColor}
+.cx .gl{width:30px;height:30px}
+.cx .v{font-size:24px;font-weight:700;letter-spacing:-.6px;line-height:1.1;margin-top:7px;align-self:flex-start}
+.cx .v.nn{font-size:16px;letter-spacing:-.2px;margin-top:11px}
+.cx .nm{font-size:11px;font-weight:700;line-height:1.1}
+.cx .d{font-size:9.5px;color:var(--td,rgba(255,255,255,.88));line-height:1.15;margin-top:2px}
+.cx.k-x .v{color:#ff453a}.cx.k-t.g .v{color:#c8ffd6}.cx.k-t.bd .v{color:#ffd0cc}
+button.slot[class*="k-"]{background:var(--tb);color:var(--tc,#fff);border-color:transparent;gap:4px;padding:0 3px}
+button.slot.k-x{box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.slot .chip{width:17px;height:17px;font-size:11px}.slot .gl{width:15px;height:15px}
+button.slot.sk-x{background:#1f1f23}button.slot.sk-t{background:#4a2d7f}button.slot.sk-m{background:#b45f06}button.slot.sk-p{background:#5a6678}button.slot.sk-l{background:#101a33}button.slot.sk-s{background:#006d77}button.slot.sk-z{background:#8e2a63}button.slot.sk-bk{background:#7a5a1e}button.slot.sk-rl{background:#2f3f7a}button.slot.sk-pg{background:#4b5159}button.slot.sk-cd{background:linear-gradient(135deg,#b45f06,#8e2a63,#2f3f7a)}
+.slot{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
+.sw{width:51px;height:31px;border-radius:999px;background:var(--fill);position:relative;flex:none;transition:background .2s}.sw::after{content:'';position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}.sw.on{background:var(--green)}.sw.on::after{transform:translateX(20px)}
+.segb{flex:1;padding:9px 4px;border-radius:9px;text-align:center;background:var(--fill);font-weight:600}.segb.on{background:var(--blue);color:#fff}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--label);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;z-index:20}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+@media (min-width:700px){#app{max-width:520px;padding-top:24px}}
+@media (hover:hover){.btn:hover,.row:hover,.card:hover{filter:brightness(1.06)}}
+@media (hover:hover) and (pointer:fine){button{cursor:pointer}.card{transition:transform .15s,box-shadow .15s,opacity .15s}.card:not(.sel):hover{transform:translateY(-4px);box-shadow:0 10px 22px rgba(0,0,0,.2)}button.row:hover{background:var(--fill)}.slot:hover{filter:brightness(1.08)}}
+@media (min-width:900px){#app{max-width:780px}.hand{grid-template-columns:repeat(5,1fr);gap:12px}.cx{min-height:134px}.stats b{font-size:28px}h1{font-size:40px}}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:24px;z-index:9;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.alert{width:270px;background:var(--card);border-radius:14px;text-align:center;overflow:hidden}
+.alert .m{padding:18px 16px}.alert .m b{display:block;font-weight:600}.alert .m small{display:block;font-size:13px;color:var(--sub);margin-top:2px}
+.alert .bt{display:flex;border-top:.5px solid var(--sep)}.alert .bt button{flex:1;padding:12px;color:var(--blue);text-align:center}
+.alert .bt button+button{border-left:.5px solid var(--sep);font-weight:600;color:var(--red)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const A=document.getElementById('app');
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a,r5=(a,b)=>rnd(a/5,b/5)*5,pick=a=>a[rnd(0,a.length-1)];
+const COL={r:['♥','Roja'],a:['♠','Azul'],v:['♣','Verde']};
+const RULES=[
+{id:'r2',t:'Las rojas ♥ valen doble'},
+{id:'a2',t:'Las azules ♠ valen doble'},
+{id:'v10',t:'Las verdes ♣ suman +10 extra'},
+{id:'nc',t:'Hoy las malditas no restan'},
+{id:'cb',t:'Los combos dan +20 en vez de +5'},
+{id:'gen',t:'Día generoso: una jugada más'},
+{id:'nor',t:'Día tranquilo: sin bonificación especial'},
+{id:'lk',t:'Día de suerte: todas las trampas salen buenas'},
+{id:'desc',t:'Descuento: la tienda cuesta 20% menos'},
+{id:'llu',t:'Lluvia: las cartas de ganancia suman +5'},
+{id:'ep',t:'Eco potente: el Eco suma 10'},
+{id:'gf',t:'Gran final: la última carta que juegues vale doble'}].map(r=>({...r,g:1}));
+const BAD=[
+{id:'r5',t:'Las rojas ♥ valen la mitad'},
+{id:'a5',t:'Las azules ♠ valen la mitad'},
+{id:'vm',t:'Las verdes ♣ restan 10'},
+{id:'nd',t:'Las malditas restan el doble'},
+{id:'sc',t:'Hoy los combos no dan puntos'},
+{id:'jm',t:'Día corto: una jugada menos'},
+{id:'imp',t:'Impuesto: pierdes 20 puntos al terminar el día'},
+{id:'ml',t:'Día de mala suerte: todas las trampas salen malas'},
+{id:'inf',t:'Inflación: la tienda cuesta 20% más'},
+{id:'seq',t:'Sequía: las cartas de ganancia pierden 5'},
+{id:'ea',t:'Eco apagado: el Eco suma 3'},
+{id:'fr',t:'Último fracaso: la última carta que juegues vale 0'}].map(r=>({...r,g:0}));
+const pickRule=()=>BAD.length&&Math.random()>=(S.items.hor?.7:.5)?pick(BAD):pick(RULES);
+const PR={"amu": 50, "man": 190, "dad": 170, "dd": 130, "det": 100, "lup": 30, "con": 0, "imn": 130, "moc": 45, "mng": 25, "caj": 70, "tij": 160, "umb": 170, "sal": 95, "par": 80, "cen": 40, "cer": 30, "tre": 50, "alc": 75, "int": 30, "calc": 55, "peg": 80, "cin": 55, "tri": 75, "fot": 40, "gua": 30, "cale": 35, "pgt": 35, "tar": 80, "tre4": 65, "bol": 40, "cam": 110, "llv": 80, "hor": 35};
+const PAL=['var(--green)','var(--blue)','var(--orange)','var(--purple)','var(--red)','#ff2d55','#5856d6','#32ade6','#a2845e','#30b0c7'];
+const ITEMS=[
+['amu','Amuleto','Las malditas que juegas restan la mitad'],
+['man','Mano extra','Juegas una carta más por día'],
+['dad','Dado','Una vez al día, cambias tu mano'],
+['dd','Doble dado','Usas el dado 2 veces por día','dad'],
+['det','Detector','Ves si una trampa es buena o mala'],
+['lup','Lupa','Ves el valor real de las trampas','det'],
+['con','Contrato sucio','Cobras 100 ya, pero saldrán más malditas'],
+['imn','Imán','Suma la carta de ganancia más alta que no juegues'],
+['moc','Mochila','Tu mano es de 14 cartas'],
+['mng','Manga','Te dan 1 carta más cada día'],
+['caj','Cajón','Guardas 1 carta (no maldita) para mañana'],
+['tij','Tijeras','Una vez al día, cambias 1 carta por otra nueva'],
+['umb','Paraguas','Las malditas sin jugar no restan el +10'],
+['sal','Sal','Las malditas pierden 5 de valor'],
+['par','Pararrayos','Tu primera maldita jugada del día no resta'],
+['cen','Cenizas','Jugar una maldita te da +5'],
+['cer','Cerradura','El Seguro afecta a las 2 cartas siguientes'],
+['tre','Trébol','Las trampas son buenas el 60%'],
+['alc','Alcancía','Te da +10 puntos cada día'],
+['int','Intereses','Tus puntos guardados crecen 5% por día'],
+['calc','Calculadora','El Eco suma 8 en vez de 6'],
+['peg','Pegamento','Los combos dan +10 en vez de +5'],
+['cin','Cinta','La ×2 no corta los combos, sea del color que sea'],
+['tri','Trío','3 del mismo color seguidas dan +20 extra'],
+['fot','Foto','El Espejo copia y suma +5'],
+['gua','Guantes de ladrón','El Ladrón roba dos tercios'],
+['cale','Calendario','La Racha suma +5 por día'],
+['pgt','Pegatina','La Racha no se pierde si faltas 1 día'],
+['tar','Tarjeta de crédito','Una vez, aplaza una cuota (o evita unos intereses)'],
+['tre4','Trébol de 4 hojas','Cada carta que juegas tiene 10% de valer doble'],
+['bol','Bola de cristal','Ves la bonificación de mañana'],
+['cam','Cambiador','Cambias la bonificación del día, 1 vez por día'],
+['llv','Llave maestra','La tienda muestra 5 objetos en vez de 3'],
+['hor','Horóscopo','Las bonificaciones buenas salen el 70% de las veces, en vez del 50%']
+].map((a,i)=>({id:a[0],n:a[1],d:a[2],req:a[3],p:PR[a[0]],c:PAL[i%PAL.length]}));
+const g=b=>`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
+const SV={
+amu:g('<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.5l-5.4 3 1.2-6-4.5-4.2 6.1-.7z"/>'),
+man:g('<rect x="4" y="7" width="11" height="14" rx="2"/><path d="M8 3.5h8a3 3 0 0 1 3 3V16"/><path d="M9.5 11.5v5M7 14h5"/>'),
+lup:g('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M16 16l5 5"/>'),
+dad:g('<rect x="4" y="4" width="16" height="16" rx="4"/><g fill="#fff" stroke="none"><circle cx="8.5" cy="8.5" r="1.3"/><circle cx="15.5" cy="8.5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="8.5" cy="15.5" r="1.3"/><circle cx="15.5" cy="15.5" r="1.3"/></g>'),
+con:g('<path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M10 12h6M10 16h6"/>'),
+deuda:g('<ellipse cx="12" cy="7" rx="7" ry="3"/><path d="M5 7v5c0 1.7 3.1 3 7 3s7-1.3 7-3V7M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/>'),
+fondo:g('<circle cx="12" cy="12" r="9"/><path d="M12 7v10M8 13l4 4 4-4"/>'),
+safe:g('<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>'),
+risk:g('<path d="M12 3c1 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-4 3-6 1 2 2 2.5 3 1 0-2-.5-4 0-6z"/>'),
+ok:g('<path d="M5 12.5l4.5 4.5L19 7"/>'),
+no:g('<path d="M6 6l12 12M18 6L6 18"/>'),
+imn:g('<path d="M6 4v8a6 6 0 0 0 12 0V4"/><path d="M6 8h4M14 8h4"/>'),
+moc:g('<path d="M9 7a3 3 0 0 1 6 0"/><rect x="5.5" y="7" width="13" height="14" rx="3.5"/><path d="M9 14h6"/>'),
+mng:g('<rect x="6" y="3.5" width="12" height="17" rx="2"/><path d="M10.5 9l1.5-1.2V16"/>'),
+dd:g('<rect x="3" y="10" width="9" height="9" rx="2"/><rect x="12" y="5" width="9" height="9" rx="2"/><g fill="#fff" stroke="none"><circle cx="6.5" cy="13.5" r=".9"/><circle cx="8.5" cy="15.5" r=".9"/><circle cx="15.5" cy="8.5" r=".9"/><circle cx="17.5" cy="10.5" r=".9"/></g>'),
+caj:g('<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 12h16M10 15.5h4"/>'),
+tij:g('<circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M8 8.5L20 16M8 15.5L20 8"/>'),
+umb:g('<path d="M3 12a9 9 0 0 1 18 0z"/><path d="M12 12v6a2 2 0 0 1-4 0"/>'),
+sal:g('<path d="M9 9h6l-.8 11H9.8z"/><path d="M9 4.5h6V9H9z"/><path d="M11 6.5h.01M13 6.5h.01"/>'),
+par:g('<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>'),
+cen:g('<path d="M12 3c2 3 5 5 5 9a5 5 0 0 1-10 0c0-2 1-3 2-4"/><path d="M8 21h8"/>'),
+cer:g('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
+det:g('<circle cx="12" cy="12" r="2.5"/><path d="M6 12a6 6 0 0 1 6-6M18 12a6 6 0 0 1-6 6M3 12a9 9 0 0 1 9-9"/>'),
+tre:g('<circle cx="9" cy="9" r="3"/><circle cx="15" cy="9" r="3"/><circle cx="12" cy="15" r="3"/><path d="M12 15v6"/>'),
+alc:g('<rect x="4" y="7" width="16" height="12" rx="5"/><path d="M10 4h4M10 11h4"/>'),
+int:g('<path d="M6 18L18 6"/><circle cx="7.5" cy="7.5" r="2"/><circle cx="16.5" cy="16.5" r="2"/>'),
+calc:g('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2"/>'),
+peg:g('<path d="M9 3h6v5l2 3v9a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-9l2-3z"/><path d="M10 14h4"/>'),
+cin:g('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>'),
+tri:g('<circle cx="5.5" cy="12" r="2.3"/><circle cx="12" cy="12" r="2.3"/><circle cx="18.5" cy="12" r="2.3"/>'),
+fot:g('<rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.5"/><path d="M9 7l1-3h4l1 3"/>'),
+gua:g('<path d="M4 9h16v3a4 4 0 0 1-4 4h-1l-3-2-3 2H8a4 4 0 0 1-4-4z"/><path d="M8 11h2M14 11h2"/>'),
+cale:g('<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>'),
+pgt:g('<path d="M5 5h14v10l-5 5H5z"/><path d="M19 15h-5v5"/>'),
+tar:g('<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/>'),
+tre4:g('<circle cx="9" cy="9" r="3"/><circle cx="15" cy="9" r="3"/><circle cx="9" cy="15" r="3"/><circle cx="15" cy="15" r="3"/>'),
+bol:g('<circle cx="12" cy="10" r="7"/><path d="M7 20h10l-1-3H8z"/>'),
+cam:g('<path d="M4 8h13l-3-3M20 16H7l3 3"/>'),
+llv:g('<circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M15 12v2"/>')};
+SV.hor=g('<path d="M20 14a8 8 0 1 1-9-10 6 6 0 0 0 9 10z"/>');
+const ico=(k,c,s)=>`<span class="ico ${s||''}" style="background:${c}">${SV[k]}</span>`;
+const CI={
+b:g('<path d="M12 5v14M5 12h14"/>'),
+e:g('<path d="M3 12c2-4 4-4 6 0s4 4 6 0 4-4 6 0"/>'),
+x:g('<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/>'),
+t:g('<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/>'),
+m:g('<path d="M6 6l12 12M18 6L6 18"/>'),
+p:g('<ellipse cx="12" cy="9.5" rx="5.5" ry="6.5"/><path d="M12 16v5M9 21h6"/>'),
+l:SV.gua,s:SV.safe,z:SV.risk,
+bk:g('<path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18"/>'),
+rl:g('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+pg:g('<path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/>'),
+cd:SV.amu};
+// PD = puntos por día que gana un jugador medio con las cartas actuales (12 cartas, 5 jugadas y bonificaciones buenas y malas).
+// La deuda y las cuotas se calculan a partir de PD para que sigan el ritmo del juego.
+const PD=63,DEUDA=PD*14;
+const dm=()=>({f:.8,n:1,d:1.25})[(S.mode&&S.diff)||ST.diff||'n'];
+const DEU=()=>Math.round(DEUDA*dm()/5)*5;
+const cuota=d=>Math.round((d<=3?[20,40,50][d-1]:50+(PD/6)*(d-3))*dm()/5)*5;
+const due=()=>S.paid?0:cuota(S.day)+(S.owed||0);
+const fmt=v=>(v>0?'+':v<0?'−':'')+Math.abs(v);
+const best=()=>{try{return +localStorage.getItem('dc_best_'+(ST.diff||'n'))||0}catch(e){return 0}};
+const saveBest=n=>{try{if(n>best())localStorage.setItem('dc_best_'+(ST.diff||'n'),n)}catch(e){}};
+let S={},PH='';
+const mx=()=>5+(S.items.man?1:0)+(S.rule.id=='gen'?1:0)-(S.rule.id=='jm'?1:0);
+const cost=c=>c.k=='pg'?3:1;
+const used=()=>S.queue.reduce((a,i)=>a+cost(S.hand[i]),0);
+const hs=()=>12+(S.items.moc?2:0)+(S.items.mng?1:0);
+const xv=c=>Math.max(0,c.v-(S.items.sal?5:0));
+const tv=c=>S.rule.id=='lk'?Math.abs(c.v):S.rule.id=='ml'?-Math.abs(c.v):c.v;
+const ksg=()=>S.items.det||S.rule.id=='lk'||S.rule.id=='ml';
+const tq=c=>S.items.lup?fmt(tv(c)):ksg()?(tv(c)>0?'+?':'−?'):'?';
+const eu=()=>(S.rule.id=='ep'?10:S.rule.id=='ea'?3:6)+(S.items.calc?2:0);
+const pr=it=>Math.round(it.p*(S.rule.id=='desc'?.8:S.rule.id=='inf'?1.2:1)/5)*5;
+
+function gen(){
+  const s=S.deck=='s',k=s?[44,8,8,12,6,4,3,4,0,3,3,1,4]:[25,7,7,28,14,3,3,3,0,2,2,3,3];
+  if(S.items.con)k[3]+=6;
+  let r=rnd(1,k.reduce((a,b)=>a+b)),i=0;
+  while(r>k[i]){r-=k[i];i++}
+  const c=pick(['r','a','v']);
+  if(i==0)return{k:'b',c,v:s?r5(5,15):r5(10,35)};
+  if(i==1)return{k:'m',c};
+  if(i==2)return{k:'e',c};
+  if(i==3)return{k:'x',c,v:s?r5(5,10):r5(10,25)};
+  if(i==5)return{k:'p',c};if(i==6)return{k:'l',c};if(i==7)return{k:'s',c};if(i==8)return{k:'z',c};
+  if(i==9)return{k:'bk',c};if(i==10)return{k:'rl',c,v:s?r5(5,15):r5(10,20)};if(i==11)return{k:'pg',c};if(i==12)return{k:'cd',v:r5(5,10)};
+  const h=s?r5(15,25):r5(30,50);
+  return{k:'t',c,v:Math.random()<(S.items.tre?.6:(s?.5:.4))?h:-h};
+}
+function ensureZ(h){
+  if(h.some(c=>c.k=='z'))return h;
+  const ix=h.map((c,i)=>i).filter(i=>!h[i].dr);
+  h[ix.length?pick(ix):h.length-1]={k:'z',c:pick(['r','a','v'])};
+  return h;
+}
+function mkHand(){
+  const h=[];
+  if(S.drawer){S.drawer.dr=1;h.push(S.drawer);S.drawer=null}
+  while(h.length<hs())h.push(gen());
+  return ensureZ(h);
+}
+const lab0=c=>c.k=='cd'?fmt(c.v)+' '+(c.c?COL[c.c][0]:'★'):c.k=='bk'?'Banco':c.k=='rl'?'Reloj '+fmt(c.v):c.k=='pg'?'Purga':c.k=='b'?fmt(c.v)+' '+COL[c.c][0]:c.k=='m'?'×2':c.k=='p'?'Espejo':c.k=='l'?'Ladrón':c.k=='s'?'Seguro':c.k=='z'?'Racha':c.k=='e'?'Eco '+COL[c.c][0]:c.k=='x'?'−'+xv(c):tq(c)+' '+COL[c.c][0];
+
+const lab=c=>lab0(c)+((c.c&&!['b','e','t','cd'].includes(c.k))?' '+COL[c.c][0]:'');
+const slotTxt=c=>{const k=c.k;return (k=='b'||k=='cd'||k=='rl')?fmt(c.v):k=='x'?'−'+xv(c):k=='t'?tq(c):k=='e'?'+'+eu():k=='z'?'+'+(S.items.cale?5:3)*(S.rch+1):k=='m'?'×2':''};
+function scoreRaw(q,det){
+  let tot=0,pend=false,L=[],prev=null,last=0,carry=0,guard=0,run=0,win=[],par=!!S.items.par,bank=0,purge=q.some(c=>c.k=='pg');
+  const brk=()=>{prev=null;run=0;win=[]};
+  const chain=c=>{
+    if(!c.c){brk();return}
+    if(prev&&prev.c==c.c){run++;const b=S.rule.id=='sc'?0:(S.rule.id=='cb'?20:5)+(S.items.peg?5:0);tot+=b;if(b)L.push(`Combo de mismo color → +${b}`);if(run==3&&S.items.tri){tot+=20;L.push('Trío → +20')}}else run=1;
+    win.push(c.c);if(win.length>3)win.shift();
+    if(win.length==3&&new Set(win).size==3){tot+=15;L.push('Arcoíris → +15');win=[]}
+    prev=c;
+  };
+  q.forEach((c,i)=>{
+    let v=0,t='',flip=false;
+    if(c.k=='m'){pend=true;guard=0;last=0;L.push(`${i+1}. ×2 → duplica la siguiente`);if(!S.items.cin)chain(c);return}
+    if(c.k=='s'){guard=S.items.cer?2:1;last=0;L.push(`${i+1}. Seguro → ${S.items.cer?'las 2 siguientes, si son malditas o trampas, suman':'la siguiente, si es maldita o trampa, suma'} en positivo`);chain(c);return}
+    if(c.k=='l'){guard=0;const st=last>0?Math.floor(last*(S.items.gua?2/3:1/2)):0;tot-=st;carry+=st;last=0;L.push(`${i+1}. Ladrón → roba ${st} de la anterior`);chain(c);return}
+    if(c.k=='bk'){guard=0;const st=last>0?last:0;tot-=st;bank+=st*2;last=0;L.push(`${i+1}. Banco → guarda ${st} de la anterior; mañana recibes ${st*2}`);chain(c);return}
+    if(c.k=='pg'){guard=0;last=0;L.push(`${i+1}. Purga → descarta todas las malditas`);chain(c);return}
+    if(guard>0){if(c.k=='x'||c.k=='t'){flip=true;guard--}else guard=0}
+    if(c.k=='rl'){v=c.v;if(i==q.length-1){v*=3;t=' (reloj: ×3 por ser la última)'}}
+    if(c.k=='p'){v=last+(S.items.fot?5:0);t=S.items.fot?' (copia a la anterior, +5 foto)':' (copia a la anterior)'}
+    if(c.k=='z'){const u=S.items.cale?5:3;v=u*(S.rch+1);t=` (racha de ${S.rch+1} día${S.rch?'s':''})`}
+    if(c.k=='b'||c.k=='cd'){v=c.v;
+      if((S.rule.id=='r2'&&c.c=='r')||(S.rule.id=='a2'&&c.c=='a')){v*=2;t=' (bonificación del día)'}
+      if(S.rule.id=='v10'&&c.c=='v'){v+=10;t=' (bonificación del día)'}
+      if((S.rule.id=='r5'&&c.c=='r')||(S.rule.id=='a5'&&c.c=='a')){v=Math.round(v/2);t=' (bonificación del día)'}
+      if(S.rule.id=='vm'&&c.c=='v'){v-=10;t=' (bonificación del día)'}
+      if(S.rule.id=='llu'){v+=5;t=' (bonificación del día)'}
+      if(S.rule.id=='seq'){v=Math.max(0,v-5);t=' (bonificación del día)'}}
+    if(c.k=='e'){const u=eu();v=u*i;t=` (${u} por cada carta antes)`}
+    if(c.k=='x'){
+      if(purge){v=0;t=' (purgada)'}
+      else if(flip){v=xv(c);t=' (Seguro: ahora suma)'}
+      else if(S.rule.id=='nc'){v=0;t=' (hoy no resta)'}
+      else if(par){v=0;par=false;t=' (pararrayos)'}
+      else{v=-xv(c)*(S.rule.id=='nd'?2:1);if(S.items.amu){v=Math.ceil(v/2);t=' (amuleto)'}}
+      if(S.items.cen&&!purge){v+=5;t+=' (+5 cenizas)'}}
+    if(c.k=='t'){if(flip){v=Math.abs(c.v);t=' (Seguro: ahora suma)'}else{v=tv(c);t=' (trampa revelada)'}}
+    if(pend){v*=2;pend=false;t+=' ×2'}
+    if(S.items.tre4&&v>0&&!det&&Math.random()<.1){v*=2;t+=' 🍀 doble'}
+    if(i==q.length-1){if(S.rule.id=='gf'){v*=2;t+=' (gran final ×2)'}if(S.rule.id=='fr'){v=0;t=' (último fracaso)'}}
+    if(carry){v+=carry;t+=` (+${carry} del ladrón)`;carry=0}
+    tot+=v;last=v;
+    L.push(`${i+1}. ${lab(c)} → ${fmt(v)}${t}`);
+    chain(c);
+  });
+  return{tot,L,bank};
+}
+function score(q){
+  const w=[];q.forEach((c,i)=>{if(c.k=='cd')w.push(i)});
+  if(!w.length)return scoreRaw(q);
+  let best=q,bt=-1e9;const cols=['r','a','v'];
+  for(let m=0;m<Math.pow(3,w.length);m++){
+    const q2=q.slice();let mm=m;
+    w.forEach(i=>{q2[i]={...q[i],c:cols[mm%3]};mm=Math.floor(mm/3)});
+    const r=scoreRaw(q2,true);
+    if(r.tot>bt){bt=r.tot;best=q2}
+  }
+  return scoreRaw(best);
+}
+function calc(q,hand){
+  const R0=score(q.map(i=>hand[i])),L=R0.L;let tot=R0.tot;
+  if(S.items.imn){const ub=hand.filter((c,i)=>!q.includes(i)&&c.k=='b').map(c=>c.v);if(ub.length){const mm=Math.max(...ub);tot+=mm;L.push(`Imán → +${mm} (la carta más alta sin jugar)`)}}
+  const lc=hand.filter((c,i)=>!q.includes(i)&&c.k=='x');
+  const purged=q.some(i=>hand[i].k=='pg');
+  const pen=(S.rule.id=='nc'||purged)?0:lc.reduce((a,c)=>a+(xv(c)+(S.items.umb?0:10))*(S.rule.id=='nd'?2:1),0);
+  return{L,tot,pen,left:lc.length,bank:R0.bank};
+}
+
+const nav=()=>`<div class="nav"><button class="back" onclick="S.ask=true;render()"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Menú</button></div>`;
+const mine=()=>{const o=ITEMS.filter(i=>S.items[i.id]);return o.length?`<div class="mine">Objetos ${o.map(i=>`<button onclick="showInfo('${i.id}')" aria-label="${i.n}">${ico(i.id,i.c,'sm')}</button>`).join('')} <span>· toca uno</span></div>`:''};
+function head(title){
+  return nav()+`<h1>${title}</h1><div class="stats"><div><small>Día</small><b>${S.day}${S.mode=='d'?'/'+S.max:''}</b></div><div><small>Puntos</small><b>${S.pts}</b></div><div><small>${S.mode=='d'?'Deuda':'Cuota de hoy'}</small><b>${S.mode=='d'?S.debt:due()}</b></div></div>`+mine();
+}
+const ruleB=chg=>`<div class="pill"><div class="pr"><div><b>Bonificación del día</b><span class="tag ${S.rule.g?'g':'m'}">${S.rule.g?'Buena':'Mala'}</span><br>${S.rule.t}</div>${chg&&S.items.cam&&!S.camUsed?'<button class="chg" onclick="swapRule()">Cambiar</button>':''}</div>${S.items.bol&&S.nxt?`<div class="nx">Mañana: ${S.nxt.t} (${S.nxt.g?'buena':'mala'})</div>`:''}</div>`;
+const alertB=()=>{
+  if(S.info){const it=ITEMS.find(x=>x.id==S.info);if(it)return `<div class="scrim" onclick="S.info=null;rr()"><div class="alert info" onclick="event.stopPropagation()"><div class="m">${ico(it.id,it.c,'lg')}<b>${it.n}</b><small>${it.d}${it.id=='tar'&&S.tarUsed?' (ya la usaste)':''}</small></div><div class="bt"><button onclick="S.info=null;rr()">Cerrar</button></div></div></div>`}
+  return S.ask?`<div class="scrim"><div class="alert"><div class="m"><b>¿Salir al menú?</b><small>Tu partida queda guardada y podrás continuar.</small></div><div class="bt"><button onclick="S.ask=false;render()">Seguir</button><button onclick="menu()">Salir</button></div></div></div>`:'';
+};
+
+function card(c,i,sel){
+  const k=c.k,u=S.items.cale?5:3;
+  const T={
+    b:['+'+c.v,'Ganancia','suma puntos'],
+    e:['+'+eu(),'Eco','por cada carta jugada antes'],
+    x:['−'+xv(c),'Maldita','resta si la juegas'],
+    t:[tq(c),'Trampa','suma o resta'],
+    m:['×2','Doble','duplica la siguiente'],
+    z:['+'+u*(S.rch+1),'Racha','+'+u+' por cada día seguido ('+(S.rch+1)+')'],
+    rl:['+'+c.v,'Reloj','triple si es tu última carta'],
+    cd:['+'+c.v,'Comodín','toma el mejor color'],
+    p:[null,'Espejo','copia a la anterior'],
+    l:[null,'Ladrón','la mitad de la anterior pasa a la siguiente'],
+    s:[null,'Seguro','la maldita o trampa que sigue suma en positivo'],
+    bk:[null,'Banco','guarda la anterior; mañana te da el doble'],
+    pg:[null,'Purga','sin malditas; gasta 3 jugadas']}[k];
+  const ex=k=='t'&&ksg()?(tv(c)>0?' g':' bd'):'';
+  const body=T[0]!==null?`<b class="v">${T[0]}</b><span class="nm">${T[1]}</span>`:`<b class="v nn">${T[1]}</b>`;
+  return `<button class="card cx k-${k} s-${c.c||'w'}${ex}${sel?' sel':''}" aria-label="${T[1]} ${T[0]||''} ${c.c?COL[c.c][1]:'comodín'}" onclick="tap(${i})"><span class="r1"><i class="chip">${c.c?COL[c.c][0]:'★'}</i><i class="gl">${CI[k]}</i></span>${body}<span class="d">${T[2]}</span></button>`;
+}
+
+function render(){
+  const p=S.phase;let h='';
+  if(['set','stats','guide','tut'].includes(p)){h=extraScreen(p)}
+  else if(p=='menu'){
+    h=`<div class="nav"></div><div class="hero"><h1>Deuda de Cartas</h1><span class="sub">Juega, paga y sobrevive.</span></div>${contB()}
+    <div class="group">
+    <button class="row" onclick="choose(this,()=>start('d'))">${ico('deuda','var(--orange)','lg')}<span class="t"><b>Modo Deuda</b><small>Paga ${DEU()} puntos en 15 días</small></span><span class="chev">›</span></button>
+    <button class="row" onclick="choose(this,()=>start('i'))">${ico('fondo','var(--purple)','lg')}<span class="t"><b>Modo Sin Fondo</b><small>Cuota diaria creciente · Récord: ${best()} días</small></span><span class="chev">›</span></button>
+    </div>`;
+    h+=extraMenu()+rulesB();
+  }
+  else if(p=='deck'){
+    h=head('Elige un mazo')+ruleB(1)+(S.msg?`<div class="pill">${S.msg}</div>`:'')+`<div class="group">
+    <button class="row" onclick="choose(this,()=>deal('s'))">${ico('safe','var(--green)','lg')}<span class="t"><b>Mazo seguro</b><small>Cartas chicas, pocas malditas</small></span><span class="chev">›</span></button>
+    <button class="row" onclick="choose(this,()=>deal('r'))">${ico('risk','var(--red)','lg')}<span class="t"><b>Mazo arriesgado</b><small>Cartas grandes, muchas malditas y trampas</small></span><span class="chev">›</span></button></div>`;
+  }
+  else if(p=='play'){
+    const m=mx();let sl='',u=0;
+    S.queue.forEach((qi,nn)=>{const c=S.hand[qi],w=cost(c);sl+=`<button class="slot s-${c.c||'w'} k-${c.k}" style="flex:${w}" onclick="tap(${qi})"><i class="chip">${c.c?COL[c.c][0]:'★'}</i>${slotTxt(c)?slotTxt(c):`<i class="gl">${CI[c.k]}</i>`}</button>`;u+=w});
+    for(let j=u;j<m;j++)sl+=`<div class="slot"></div>`;
+    const mxd=S.items.dd?2:1;
+    h=head('Tu mano')+ruleB(1)+(S.act?`<div class="pill">${S.act=='caj'?'Toca la carta que quieres guardar para mañana (las malditas no se pueden guardar).':'Toca la carta que quieres cambiar por otra nueva.'}</div>`:'')+`<div class="sub" style="margin:0 4px">Toca las cartas en el orden en que las quieres jugar (máximo ${m} jugadas; la Purga gasta 3).</div><div class="slots">${sl}</div><div class="hand">${S.hand.map((c,i)=>card(c,i,S.queue.includes(i))).join('')}</div>
+    <button class="btn" onclick="resolve()">${S.queue.length?'Jugar cartas':'Pasar sin jugar'}</button>`;
+    let ex='';
+    if(S.items.dad&&S.dn<mxd)ex+=`<button class="btn tint" onclick="dice()">Dado: cambiar mano (${mxd-S.dn})</button>`;
+    if(S.items.caj&&!S.cajUsed)ex+=`<button class="btn tint" onclick="setAct('caj')">${S.act=='caj'?'Cancelar':'Cajón: guardar carta'}</button>`;
+    if(S.items.tij&&!S.tijUsed)ex+=`<button class="btn tint" onclick="setAct('tij')">${S.act=='tij'?'Cancelar':'Tijeras: cambiar carta'}</button>`;
+    if(ex)h+=`<div class="seg2">${ex}</div>`;
+  }
+  else if(p=='res'){
+    const R=S.res,net=R.tot-R.pen;
+    h=head('Resultado')+`<div class="group">${R.L.map(x=>`<div class="line">${x}</div>`).join('')||'<div class="line">No jugaste ninguna carta.</div>'}${R.left?`<div class="line">${R.left} maldita(s) sin jugar → ${R.pen?'−'+R.pen:'0'}</div>`:''}</div>
+    <div class="total"><small>Total del día</small><b class="${net>=0?'pos':'neg'}">${fmt(net)}</b></div>
+    <button class="btn" onclick="toShop()">Ir a la tienda</button>`;
+  }
+  else if(p=='shop'){
+    h=head('Tienda')+`<div class="sec">Objetos</div>`;
+    h+=S.shop.length?`<div class="group">${S.shop.map(it=>`<button class="row" ${S.pts<pr(it)?'disabled style="opacity:.4"':''} onclick="buyA(this,'${it.id}')">${ico(it.id,it.c,'lg')}<span class="t"><b>${it.n}</b><small>${it.d}${S.pts<pr(it)?` · Te faltan ${pr(it)-S.pts}`:''}</small></span><span class="price">${it.p?pr(it):'Gratis'}</span></button>`).join('')}</div>`:'<div class="pill">No quedan objetos.</div>';
+    if(S.mode=='d'&&S.debt>0)h+=`<div class="sec">Pagar deuda</div><div class="seg"><button class="btn tint" ${S.pts<25?'disabled':''} onclick="pay(25)">25</button><button class="btn tint" ${S.pts<100?'disabled':''} onclick="pay(100)">100</button><button class="btn tint" ${S.pts<1?'disabled':''} onclick="pay(S.pts)">Todo</button></div>`;
+    if(S.mode=='i'){const c=due();h+=c>0?`<div class="sec">Cuota de hoy</div><button class="btn tint" ${S.pts<c?'disabled':''} onclick="payToday()">Pagar la cuota de hoy (${c})</button><div class="pill">Si no la pagas ahora, se cobra al terminar el día. Si no te alcanza, pierdes.</div>`:`<div class="pill" style="margin-top:14px">Cuota de hoy pagada ✓</div>`}
+    h+=`<button class="btn" style="margin-top:20px" onclick="endDay()">Terminar el día</button>`;
+  }
+  else if(p=='win'){
+    h=`<div class="center"><div class="bigico" style="background:var(--green)">${SV.ok}</div><h1>Deuda pagada</h1><p>La saldaste en el día ${S.day} con ${S.pts} puntos de sobra.</p></div><button class="btn" onclick="start('${S.mode}')">Jugar otra vez</button><button class="btn tint" onclick="shareRes()">Compartir resultado</button><button class="btn tint" onclick="menu()">Menú</button>`;
+  }
+  else if(p=='lose'){
+    h=`<div class="center"><div class="bigico" style="background:var(--red)">${SV.no}</div>`+(S.mode=='i'?`<h1>Quiebra</h1><p>No pudiste pagar la cuota de ${due()} el día ${S.day}. Sobreviviste ${S.day-1} días.<br>Récord: ${best()} días.</p>`:`<h1>Embargo</h1><p>Se acabaron los días y todavía debes ${S.debt} puntos.</p>`)+`</div><button class="btn" onclick="start('${S.mode}')">Intentar de nuevo</button><button class="btn tint" onclick="shareRes()">Compartir resultado</button><button class="btn tint" onclick="menu()">Menú</button>`;
+  }
+  A.classList.toggle('enter',p!==PH);PH=p;
+  A.innerHTML=h+(!['menu','win','lose','set','stats','guide','tut'].includes(p)?alertB():'');
+  if(!S.ask)window.scrollTo(0,0);
+  saveG();
+}
+const rr=()=>{const y=window.scrollY;render();window.scrollTo(0,y)};
+
+const rulesB=()=>`<div class="box"><b>Cómo se juega</b>
+<p><b>Objetivo.</b> Modo Deuda: paga ${DEU()} puntos en 15 días (la deuda sube 10% cada 5 días). Sin Fondo: paga la cuota diaria, que cada día es mayor, y sobrevive todos los días que puedas.</p>
+<p><b>Cada día.</b> Eliges un mazo, te dan 12 cartas y juegas hasta 5 en el orden que quieras. El orden cambia los puntos.</p>
+<p><b>Malditas.</b> Si no las juegas, restan su valor más 10.</p>
+<p><b>Combo.</b> Todas las cartas tienen color (♥ ♠ ♣). Dos seguidas del mismo color dan +5.</p>
+<p><b>Arcoíris.</b> Tres cartas seguidas de colores distintos (♥ ♠ ♣) dan +15.</p>
+${BAD.length?'<p><b>Bonificación.</b> Cada día hay 50% de que sea buena y 50% de que sea mala.</p>':''}
+<p><b>Puntos.</b> Lo que no gastes en la tienda se guarda para el día siguiente.</p></div>`;
+function showInfo(id){S.info=id;rr()}
+function choose(el,fn){if(el.dataset.p)return;el.dataset.p=1;el.classList.add('pick');setTimeout(fn,280)}
+function menu(){S={phase:'menu'};render()}
+function start(m){S={mode:m,day:1,pts:10,debt:DEU(),max:15,diff:ST.diff,items:{},rch:0,rm:0,owed:0};newDay()}
+function newDay(m){
+  S.rule=S.nxt||pickRule();S.nxt=pickRule();if(S.day>1)sfx('day');
+  S.paid=false;S.dn=0;S.cajUsed=false;S.tijUsed=false;S.camUsed=false;S.act=null;
+  let msg=m||'';
+  if(S.items.alc){S.pts+=10;msg+=(msg?' ':'')+'Alcancía: +10 puntos.'}
+  if(S.bank){S.pts+=S.bank;msg+=(msg?' ':'')+`Banco: +${S.bank} puntos.`;S.bank=0}
+  S.phase='deck';S.queue=[];S.hand=[];S.res=null;S.msg=msg;render();S.msg='';
+}
+function deal(d){S.deck=d;S.hand=mkHand();S.queue=[];S.phase='play';render()}
+function swapRule(){
+  if(S.camUsed)return;S.camUsed=true;
+  let r;do{r=pickRule()}while(r.id==S.rule.id);
+  S.rule=r;while(S.queue.length&&used()>mx())S.queue.pop();rr();
+}
+function setAct(a){S.act=S.act==a?null:a;rr()}
+function tap(i){
+  if(S.act)return act(i);
+  const k=S.queue.indexOf(i),full=k<0&&used()+cost(S.hand[i])>mx();
+  sfx(full?'no':'tap');
+  if(k>=0)S.queue.splice(k,1);else if(!full)S.queue.push(i);
+  rr();
+  const cards=A.querySelectorAll('.card');
+  if(full){cards[i]&&cards[i].classList.add('shake')}
+  else if(k<0){const sl=A.querySelectorAll('button.slot')[S.queue.length-1];sl&&sl.classList.add('slotin')}
+  else{cards[i]&&cards[i].classList.add('bump')}
+}
+function act(i){
+  const c=S.hand[i],no=S.queue.includes(i)||(S.act=='caj'&&c.k=='x');
+  if(no){const el=A.querySelectorAll('.card')[i];el&&el.classList.add('shake');return}
+  if(S.act=='caj'){S.hand.splice(i,1);S.queue=S.queue.map(j=>j>i?j-1:j);delete c.dr;S.drawer=c;S.cajUsed=true;S.act=null;rr()}
+  else{S.hand[i]=gen();S.tijUsed=true;S.act=null;rr();const el=A.querySelectorAll('.card')[i];el&&el.classList.add('bump')}
+}
+function dice(){
+  S.dn++;
+  const h=S.hand.filter(c=>c.dr),t=hs()-(S.cajUsed?1:0);
+  while(h.length<t)h.push(gen());
+  ensureZ(h);S.hand=h;S.queue=[];rr();
+}
+function resolve(){
+  const R=calc(S.queue,S.hand),q=S.queue.map(i=>S.hand[i]);
+  S.bank=(S.bank||0)+R.bank;
+  if(q.some(c=>c.k=='z')){S.rch++;S.rm=0}else{S.rm++;if(S.rm>(S.items.pgt?1:0)){S.rch=0;S.rm=0}}
+  S.pts=Math.max(0,S.pts+R.tot-R.pen);
+  S.res=R;S.phase='res';afterRes(R,q);render();
+}
+function toShop(){
+  const av=ITEMS.filter(i=>!S.items[i.id]&&(!i.req||S.items[i.req])&&(i.id!='hor'||BAD.length));
+  const sh=av.slice().sort(()=>Math.random()-.5).slice(0,S.items.llv?5:3);
+  if(sh.length&&!sh.some(i=>pr(i)<=S.pts)){
+    const ok=av.filter(i=>pr(i)<=S.pts);
+    if(ok.length)sh[sh.length-1]=pick(ok);
+    else{const ch=av.slice().sort((a,b)=>pr(a)-pr(b))[0];if(!sh.includes(ch))sh[sh.length-1]=ch}
+  }
+  S.shop=sh;S.phase='shop';render();
+}
+function buyA(el,id){
+  const it=ITEMS.find(x=>x.id==id);
+  if(S.pts<pr(it)||el.dataset.b)return;
+  el.dataset.b=1;el.classList.add('bought');
+  const pe=el.querySelector('.price');if(pe)pe.textContent='✓';
+  setTimeout(()=>buy(id),720);
+}
+function buy(id){
+  const it=ITEMS.find(x=>x.id==id);
+  if(S.pts<pr(it))return;
+  S.pts-=pr(it);S.items[id]=true;sfx('buy');stats.items++;if(Object.keys(S.items).length>=8)ach('col');LS.set('dc_stats',stats);if(id=='con')S.pts+=100;
+  S.shop=S.shop.filter(x=>x.id!=id);
+  rr();
+  const b=A.querySelector('.stats div:nth-child(2) b');if(b)b.classList.add('tick');
+  const idx=ITEMS.filter(x=>S.items[x.id]).findIndex(x=>x.id==id),m=A.querySelectorAll('.mine .ico');
+  if(m[idx])m[idx].classList.add('ipop');
+}
+function payToday(){
+  const c=due();if(c<=0||S.pts<c)return;
+  S.pts-=c;S.owed=0;S.paid=true;rr();
+  const b=A.querySelector('.stats div:nth-child(2) b');if(b)b.classList.add('tick');
+}
+function pay(n){
+  n=Math.min(n,S.pts,S.debt);S.pts-=n;S.debt-=n;
+  if(S.debt<=0){S.phase='win';onEnd(true)}
+  render();
+}
+function endDay(){
+  let m='',tm='';
+  if(S.rule.id=='imp'){const tx=Math.min(20,S.pts);S.pts-=tx;tm=`Impuesto: −${tx} puntos. `}
+  if(S.mode=='i'){
+    const c=due();
+    if(S.pts<c){
+      if(S.items.tar&&!S.tarUsed){S.tarUsed=true;S.owed=c;m='Tarjeta de crédito: la cuota se aplazó y se suma a la de hoy.';saveBest(S.day);S.day++}
+      else{saveBest(S.day-1);lose();return}
+    }else{S.pts-=c;S.owed=0;saveBest(S.day);S.day++;if(S.day>10)ach('s10')}
+  }else{
+    if(S.day%5==0&&S.debt>0){
+      if(S.items.tar&&!S.tarUsed){S.tarUsed=true;m='Tarjeta de crédito: evitaste los intereses.'}
+      else{S.debt=Math.round(S.debt*1.1/5)*5;m='Intereses: la deuda subió 10%.'}
+    }
+    S.day++;
+    if(S.day>S.max&&S.debt>0){lose();return}
+  }
+  if(S.items.int){const gn=Math.floor(S.pts*.05);if(gn>0){S.pts+=gn;m+=(m?' ':'')+`Intereses: +${gn} puntos.`}}
+  newDay(tm+m);
+}
+
+/* ===== extras: ajustes, sonido, guardado, logros, guía ===== */
+const LS={get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
+const ST=Object.assign({snd:1,vib:1,theme:'a',diff:'n'},LS.get('dc_set')||{});
+const stats=Object.assign({g:0,w:0,l:0,days:0,best:0,items:0,ach:{}},LS.get('dc_stats')||{});
+function applyTheme(){const r=document.documentElement;if(ST.theme=='a')r.removeAttribute('data-theme');else r.setAttribute('data-theme',ST.theme)}
+function setS(k,v){ST[k]=v;LS.set('dc_set',ST);applyTheme();rr()}
+let AC=null;
+function tone(f,t,d,ty,v){if(!ST.snd)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g2=AC.createGain(),n=AC.currentTime+t;o.type=ty||'sine';o.frequency.value=f;g2.gain.setValueAtTime(.0001,n);g2.gain.exponentialRampToValueAtTime(v||.15,n+.01);g2.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(g2);g2.connect(AC.destination);o.start(n);o.stop(n+d+.02)}catch(e){}}
+const SFX={tap:[[520,0,.06]],no:[[150,0,.12,'square',.08]],buy:[[660,0,.08],[880,.08,.14]],good:[[523,0,.1],[659,.1,.1],[784,.2,.18]],bad:[[220,0,.15,'triangle'],[165,.15,.22,'triangle']],combo:[[784,0,.08],[988,.08,.08],[1175,.16,.16]],day:[[440,0,.08,'sine',.08]],win:[[523,0,.12],[659,.12,.12],[784,.24,.12],[1047,.36,.3]],lose:[[330,0,.18,'triangle'],[247,.18,.18,'triangle'],[165,.36,.35,'triangle']]};
+const VB={tap:8,no:[30,30,30],buy:15,good:20,bad:[40,40,40],combo:[15,30,15],win:[30,40,30,40,60],lose:[80,50,80]};
+function sfx(n){(SFX[n]||[]).forEach(a=>tone(a[0],a[1],a[2],a[3],a[4]));if(ST.vib&&navigator.vibrate&&VB[n]){try{navigator.vibrate(VB[n])}catch(e){}}}
+const ACH={win:['Primera victoria','Paga la deuda en Modo Deuda'],sinobj:['Sin gastar','Gana el Modo Deuda sin comprar objetos'],arco:['Arcoíris','Logra un Arcoíris en una jugada'],trio:['Trío','Logra un Trío del mismo color'],d100:['Gran día','Suma 100 puntos o más en un día'],racha5:['En racha','Llega a una Racha de 5 días'],purga:['Limpieza','Usa una Purga'],col:['Coleccionista','Ten 8 objetos a la vez'],s10:['Superviviente','Sobrevive 10 días en Sin Fondo']};
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2300)}
+function ach(id){if(stats.ach[id])return;stats.ach[id]=1;LS.set('dc_stats',stats);toast('🏆 '+ACH[id][0])}
+function afterRes(R,q){const net=R.tot-R.pen,t=R.L.join('|');sfx(/Arcoíris|Combo/.test(t)?'combo':net>=0?'good':'bad');if(/Arcoíris/.test(t))ach('arco');if(/Trío/.test(t))ach('trio');if(net>=100)ach('d100');if(S.rch>=5)ach('racha5');if(q.some(c=>c.k=='pg'))ach('purga')}
+function onEnd(w){stats.g++;w?stats.w++:stats.l++;stats.days+=S.day;LS.del('dc_save');if(w){ach('win');if(!Object.keys(S.items).length)ach('sinobj')}sfx(w?'win':'lose');LS.set('dc_stats',stats)}
+function lose(){S.phase='lose';onEnd(false);render()}
+function shareRes(){const t=S.mode=='i'?`Sobreviví ${S.day-1} días en Deuda de Cartas (Modo Sin Fondo). ¿Puedes superarme?`:S.phase=='win'?`Pagué toda la deuda en el día ${S.day} en Deuda de Cartas. ¿Puedes hacerlo?`:'Me embargaron en Deuda de Cartas. ¿Puedes superarme?';const u=location.href;if(navigator.share){navigator.share({text:t,url:u}).catch(()=>{})}else{try{navigator.clipboard.writeText(t+' '+u).then(()=>toast('Copiado para compartir'))}catch(e){toast('No se pudo copiar')}}}
+const hasSave=()=>!!LS.get('dc_save');
+function saveG(){if(S.mode&&['deck','play','res','shop'].includes(S.phase)){LS.set('dc_save',Object.assign({},S,{rule:S.rule&&S.rule.id,nxt:S.nxt&&S.nxt.id,shop:S.shop&&S.shop.map(i=>i.id),ask:false,info:null,act:null,msg:''}))}}
+function cont(){const o=LS.get('dc_save');if(!o)return;const all=[...RULES,...BAD];o.rule=all.find(r=>r.id==o.rule)||RULES[6];o.nxt=all.find(r=>r.id==o.nxt)||pickRule();if(o.shop)o.shop=o.shop.map(id=>ITEMS.find(i=>i.id==id)).filter(Boolean);S=o;PH='';render()}
+const contB=()=>{const o=LS.get('dc_save');return o?`<div class="group" style="margin-bottom:12px"><button class="row" onclick="choose(this,cont)"><span class="ico lg" style="background:var(--blue)">${SV.ok}</span><span class="t"><b>Continuar partida</b><small>${o.mode=='d'?'Modo Deuda':'Modo Sin Fondo'} · día ${o.day} (si empiezas otra, se reemplaza)</small></span><span class="chev">›</span></button></div>`:''};
+SV.gear=g('<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>');
+const extraMenu=()=>`<div class="group" style="margin-top:14px">
+<button class="row" onclick="choose(this,()=>go('guide'))">${ico('man','var(--orange)','lg')}<span class="t"><b>Guía de cartas</b><small>Qué hace cada tipo de carta</small></span><span class="chev">›</span></button>
+<button class="row" onclick="choose(this,()=>go('stats'))">${ico('amu','var(--purple)','lg')}<span class="t"><b>Logros y estadísticas</b><small>${Object.keys(stats.ach).length} de ${Object.keys(ACH).length} logros</small></span><span class="chev">›</span></button>
+<button class="row" onclick="choose(this,()=>go('set'))">${ico('gear','#8e8e93','lg')}<span class="t"><b>Ajustes</b><small>Sonido, tema y dificultad</small></span><span class="chev">›</span></button></div>`;
+function go(p){S={phase:p,tp:0,items:{},rule:RULES[6],rch:0,day:1};render()}
+const back=()=>`<div class="nav"><button class="back" onclick="menu()"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Menú</button></div>`;
+const TUT=[['Tu objetivo','Modo Deuda: paga la deuda antes del día 15. Modo Sin Fondo: paga la cuota de cada día y sobrevive todo lo que puedas.'],['Cada día','Eliges un mazo, te dan 12 cartas y juegas hasta 5. Toca las cartas en el orden en que las quieres jugar: el orden cambia los puntos.'],['Colores y combos','Todas las cartas tienen palo (♥ ♠ ♣). Dos seguidas del mismo color dan combo +5, y tres de colores distintos, Arcoíris +15.'],['Cuidado con las malditas','Si no las juegas, restan su valor más 10. La Purga las descarta todas.'],['Tienda y bonificación','Compra objetos con tus puntos. Cada día hay una bonificación: puede ser buena o mala.']];
+function endTut(){LS.set('dc_tut',1);menu()}
+function wipe(){if(!S.wp){S.wp=1;rr();return}['dc_save','dc_stats','dc_set','dc_tut','dc_best_f','dc_best_n','dc_best_d'].forEach(LS.del);location.reload()}
+function extraScreen(p){
+  if(p=='tut'){const i=S.tp,l=i==TUT.length-1;return `<div class="nav"></div><h1>${TUT[i][0]}</h1><div class="pill" style="font-size:17px">${TUT[i][1]}</div><div class="sub" style="text-align:center">${i+1} de ${TUT.length}</div><button class="btn" onclick="${l?'endTut()':'S.tp++;render()'}">${l?'Empezar a jugar':'Siguiente'}</button>${l?'':'<button class="btn tint" onclick="endTut()">Saltar</button>'}`}
+  if(p=='set'){const sw=(k,t)=>`<button class="row" onclick="setS('${k}',${ST[k]?0:1})"><span class="t"><b>${t}</b></span><span class="sw${ST[k]?' on':''}"></span></button>`;const seg=(k,o)=>`<div class="row" style="gap:6px">${o.map(x=>`<button class="segb${ST[k]==x[0]?' on':''}" onclick="setS('${k}','${x[0]}')">${x[1]}</button>`).join('')}</div>`;
+    return back()+`<h1>Ajustes</h1><div class="group">${sw('snd','Sonido')}${sw('vib','Vibración')}</div><div class="sec">Tema</div><div class="group">${seg('theme',[['a','Automático'],['light','Claro'],['dark','Oscuro']])}</div><div class="sec">Dificultad</div><div class="group">${seg('diff',[['f','Fácil'],['n','Normal'],['d','Difícil']])}</div><div class="pill" style="margin-top:8px">Cambia la deuda y las cuotas de las partidas nuevas.</div><div class="group" style="margin-top:14px"><button class="row" onclick="go('tut')"><span class="t"><b>Ver tutorial</b></span><span class="chev">›</span></button><button class="row" onclick="wipe()"><span class="t"><b style="color:var(--red)">${S.wp?'Toca de nuevo para borrar todo':'Borrar datos y logros'}</b></span></button></div><div class="pill" style="margin-top:14px">En iPhone: Compartir → Añadir a pantalla de inicio. En computadora: 1-9 eligen carta, Enter confirma, Esc abre el menú.</div>`}
+  if(p=='stats'){const r=(a,b)=>`<div class="row"><span class="t"><b>${a}</b></span><span class="sub">${b}</span></div>`;
+    return back()+`<h1>Logros</h1><div class="group">${r('Partidas',stats.g)}${r('Victorias',stats.w)}${r('Derrotas',stats.l)}${r('Récord en Sin Fondo',best()+' días')}${r('Objetos comprados',stats.items)}</div><div class="sec">Logros</div><div class="group">${Object.entries(ACH).map(([k,v])=>`<div class="row"><span class="ico" style="background:${stats.ach[k]?'var(--green)':'#8e8e93'}">${stats.ach[k]?SV.ok:SV.no}</span><span class="t"><b>${v[0]}</b><small>${v[1]}</small></span></div>`).join('')}</div>`}
+  const ex=[{k:'b',c:'r',v:15},{k:'x',c:'a',v:15},{k:'t',c:'v',v:-20},{k:'m',c:'r'},{k:'e',c:'a'},{k:'p',c:'v'},{k:'l',c:'r'},{k:'s',c:'a'},{k:'z',c:'v'},{k:'bk',c:'r'},{k:'rl',c:'a',v:15},{k:'pg',c:'v'},{k:'cd',v:10}];
+  return back()+`<h1>Guía</h1><div class="hand">${ex.map((c,i)=>card(c,i).replace(/ onclick="[^"]*"/,'')).join('')}</div><div class="group">${TUT.map(t=>`<div class="line"><b>${t[0]}.</b> ${t[1]}</div>`).join('')}</div>`
+}
+document.addEventListener('keydown',e=>{const p=S.phase;
+  if(e.key=='Escape'&&['deck','play','res','shop'].includes(p)){S.ask=!S.ask;rr();return}
+  if(S.ask||S.info)return;
+  if(p=='play'){if(/^[1-9]$/.test(e.key)&&S.hand[+e.key-1])tap(+e.key-1);else if(e.key=='0'&&S.hand[9])tap(9);else if(e.key=='Enter')resolve()}
+  else if(p=='deck'){if(e.key=='1')deal('s');if(e.key=='2')deal('r')}
+  else if(p=='res'&&e.key=='Enter')toShop();else if(p=='shop'&&e.key=='Enter')endDay()});
+function boot(){applyTheme();if(!LS.get('dc_tut'))go('tut');else menu()}
+boot();
+</script>
+</body>
+</html>
